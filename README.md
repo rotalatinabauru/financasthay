@@ -1,153 +1,120 @@
 # 💜 Finanças da Thay
 
-App de controle financeiro pessoal feito para o **celular**. Funciona no navegador,
-pode ser instalado na tela inicial como um aplicativo de verdade e **funciona sem internet**.
+App de controle financeiro pessoal feito para o **celular**. Abre no navegador, instala na
+tela inicial como um aplicativo de verdade e **funciona sem internet**.
 
-Todos os dados ficam salvos **automaticamente no próprio aparelho** — nada vai para a nuvem,
-nada precisa de login, nada tem custo.
-
----
-
-## ✨ O que ele faz
-
-| Recurso | Descrição |
-|---|---|
-| 💳 **Crédito, Pix, débito e dinheiro** | Lançamento em 4 toques: valor → forma de pagamento → categoria → salvar |
-| 🏦 **3 bancos** | Banco do Brasil, Nubank e Inter, mais a carteira de dinheiro em espécie |
-| 🧾 **2 cartões de crédito** | Cartão BB e Cartão Nubank, cada um com seu dia de fechamento e vencimento |
-| ➗ **Compras parceladas** | Divide automaticamente nas faturas certas, sem perder centavo |
-| 📅 **Faturas** | Mostra a fatura aberta, o que ainda vai vencer e o limite usado |
-| 🤝 **Empréstimos** | Dinheiro que ela emprestou e dinheiro que ela pegou com amigos e parentes, com pagamentos parciais |
-| 🎯 **Orçamento por categoria** | Define um limite mensal e avisa quando está estourando |
-| 📊 **Relatórios** | Gasto por categoria, por forma de pagamento, por banco e evolução de 6 meses |
-| 🔁 **Contas fixas** | Marca uma despesa como "repetir todo mês" e ela se lança sozinha |
-| 💾 **Backup** | Exporta tudo em `.json` (backup completo) ou `.csv` (para abrir no Excel) |
-| 🌙 **Tema claro e escuro** | Toque em *Ajustes* para trocar |
+Os dados ficam salvos **automaticamente no próprio aparelho**. Sem login, sem nuvem, sem custo.
 
 ---
 
-## 📲 Como colocar no celular (o jeito mais fácil)
-
-### 1. Subir para o GitHub
-
-Se você já tem o Git instalado no computador:
-
-```bash
-git clone https://github.com/SEU-USUARIO/financas-thay.git   # ou crie o repositório vazio no site
-# copie os arquivos deste projeto para dentro da pasta
-git add .
-git commit -m "primeira versão do app"
-git push
-```
-
-Se preferir **sem comando nenhum**:
-
-1. Acesse [github.com/new](https://github.com/new) e crie um repositório chamado `financas-thay` (deixe **Public**).
-2. Na página do repositório, clique em **Add file → Upload files**.
-3. Arraste **todos os arquivos e pastas** deste projeto (`index.html`, `manifest.json`, `sw.js`, e as pastas `css`, `js`, `icons`).
-4. Clique em **Commit changes**.
-
-### 2. Ligar o GitHub Pages
-
-1. No repositório, vá em **Settings → Pages**.
-2. Em *Source*, escolha **Deploy from a branch**.
-3. Em *Branch*, escolha **main** e a pasta **/ (root)**. Clique em **Save**.
-4. Espere ~1 minuto. O endereço aparece no topo da página:
+## 📁 Os arquivos
 
 ```
-https://SEU-USUARIO.github.io/financas-thay/
+index.html               ← o app inteiro (HTML + CSS + JavaScript num arquivo só)
+manifest.json            ← faz virar aplicativo instalável
+sw.js                    ← faz funcionar offline
+icon-192.png             ← ícone
+icon-512.png             ← ícone
+icon-maskable-512.png    ← ícone
 ```
 
-### 3. Instalar no celular
+Nenhuma pasta, nenhuma biblioteca, nenhum `npm install`, nenhum build.
+**O `index.html` sozinho já roda o app completo** — os outros arquivos só servem para instalar
+no celular e funcionar offline.
 
-Abra esse endereço no celular e:
+---
 
-- **Android (Chrome):** menu ⋮ → **Instalar aplicativo** / *Adicionar à tela inicial*
+## 📲 Colocar no ar (GitHub Pages)
+
+1. No repositório, clique em **Add file → Upload files** (num repositório vazio, o link é
+   **"uploading an existing file"** dentro da caixa azul).
+2. Arraste **os 6 arquivos acima**, soltos — não a pasta que os contém. O `index.html` precisa
+   ficar na raiz do repositório.
+3. Clique em **Commit changes**.
+4. Vá em **Settings → Pages** → *Source*: `Deploy from a branch` → *Branch*: `main` e `/ (root)`
+   → **Save**.
+5. Em um ou dois minutos o endereço aparece no topo dessa página.
+
+### Instalar no celular
+
+Abra o endereço no celular e:
+
+- **Android (Chrome):** menu ⋮ → **Instalar aplicativo**
 - **iPhone (Safari):** botão compartilhar → **Adicionar à Tela de Início**
 
-Pronto. O ícone fica junto dos outros apps e abre em tela cheia, sem barra de navegador.
-
-> 💡 Dá para usar direto no navegador também, sem instalar. Instalar só deixa mais rápido e permite usar sem internet.
-
 ---
 
-## 🚀 Como usar no dia a dia
+## 🚀 Como usar
 
-1. **Toque no botão roxo `+`** no meio da barra de baixo.
-2. **Digite o valor** no teclado grande (não precisa de vírgula: `1500` vira `R$ 15,00`).
-3. **Escolha como pagou**: Crédito, Pix, Dinheiro ou Débito.
-   - No crédito, escolha o cartão e o número de parcelas — o app já diz em qual fatura vai cair.
-   - No Pix/débito, escolha o banco.
-4. **Toque na categoria** e em **Salvar**. Pronto, já está salvo.
+Na primeira vez o app abre uma **configuração rápida**: nome, quanto tem em cada banco e as
+datas de fechamento e vencimento dos dois cartões. Leva menos de um minuto e dá para refazer
+depois pela engrenagem ⚙️ no canto superior direito.
 
-Para **receitas** (salário, venda, pix recebido), é o mesmo caminho: toque em `+` e mude para **Receita** no topo.
+**Para lançar um gasto:** toque no botão roxo `+` → digite o valor no teclado grande
+(`1500` vira `R$ 15,00`) → escolha Crédito, Pix, Dinheiro ou Débito → toque na categoria →
+**Salvar**.
 
-Para **corrigir ou apagar** um lançamento, é só tocar nele na lista da tela inicial.
+- No **crédito**, escolha o cartão e em quantas vezes; o app mostra na hora em qual fatura vai
+  cair e quanto fica cada parcela.
+- No **Pix ou débito**, escolha o banco.
+- Para **receitas**, mude para *Receita* no topo da tela de lançamento.
+- Para **corrigir ou apagar**, toque no lançamento na lista da tela inicial.
+- Os botões de **Lançar rápido** na tela inicial aprendem sozinhos os gastos mais frequentes.
 
 ### Empréstimos
 
-Na aba **Empréstimos** → *Novo empréstimo*:
+Aba **Empréstimos** → *Novo empréstimo*:
 
-- **Eu emprestei** → dinheiro que saiu e que alguém deve devolver.
-- **Eu peguei** → dinheiro que entrou e que ela precisa devolver.
+- **Eu emprestei** → dinheiro que saiu e alguém precisa devolver.
+- **Eu peguei** → dinheiro que entrou e ela precisa devolver.
 
-Sempre que receber (ou pagar) uma parte, toque em *Recebi um valor* / *Paguei um valor*.
-A barrinha mostra quanto já foi quitado e o app avisa quando a data combinada passou.
-
-### Primeira configuração (leva 2 minutos)
-
-Vá em **Relatórios → ⚙️ Ajustes** e preencha:
-
-- O **saldo inicial** de cada banco (quanto tem hoje na conta).
-- O **dia de fechamento e vencimento** de cada cartão (está na fatura ou no app do banco).
-- O **limite** de cada cartão (opcional, serve para a barrinha de limite usado).
-- Os **orçamentos** por categoria (opcional).
+A cada valor recebido ou pago, toque em *＋ Recebi* / *＋ Paguei*. A barrinha mostra quanto já
+foi quitado e o app avisa quando a data combinada passou.
 
 ---
 
-## 💾 Sobre os dados e o backup
+## ✨ O que tem dentro
 
-Os dados ficam no armazenamento local do navegador do celular (`localStorage`), salvos
-automaticamente a cada toque. Isso significa:
+| | |
+|---|---|
+| 💳 **Formas de pagamento** | Crédito, Pix, débito e dinheiro |
+| 🏦 **Bancos** | Banco do Brasil, Nubank, Inter e carteira de dinheiro, cada um com saldo próprio |
+| 🧾 **Cartões** | Cartão BB e Cartão Nubank, com fechamento, vencimento e limite |
+| ➗ **Parcelamento** | Até 24x, distribuído nas faturas certas, sem perder centavo no arredondamento |
+| 📅 **Faturas** | Fatura aberta, próximas faturas, histórico do que já foi pago |
+| 🤝 **Empréstimos** | Feitos e tomados, com pagamentos parciais e aviso de atraso |
+| 🎯 **Orçamento** | Limite mensal por categoria, com alerta ao se aproximar |
+| 📊 **Relatórios** | Por categoria, forma de pagamento, banco, maiores gastos e 6 meses de evolução |
+| 🔁 **Contas fixas** | Marque "repetir todo mês" e o lançamento se cria sozinho |
+| 🔍 **Busca** | Encontre qualquer lançamento pelo nome ou categoria |
+| 💾 **Backup** | Exporta `.json` (backup completo) e `.csv` (abre no Excel) |
+| 🌙 **Temas** | Escuro e claro |
 
-- ✅ Ninguém além dela vê os dados. Nem eu, nem o GitHub.
+---
+
+## 💾 Sobre os dados
+
+Ficam no armazenamento local do navegador do celular (`localStorage`), gravados a cada toque.
+
+- ✅ Ninguém mais vê. Nem o GitHub, nem eu.
 - ✅ Funciona sem internet.
-- ⚠️ Se ela **limpar os dados do navegador** ou trocar de celular, os dados vão junto.
+- ⚠️ Se limpar os dados do navegador ou trocar de celular, os dados vão junto.
 
-Por isso: **uma vez por mês, entre em Ajustes e toque em "Baixar backup (.json)"**.
-Para restaurar em outro aparelho, é só abrir o app lá e usar *Restaurar backup*.
-
----
-
-## 🗂 Estrutura do projeto
-
-```
-financas-thay/
-├── index.html         # a tela do app
-├── manifest.json      # faz virar aplicativo instalável
-├── sw.js              # service worker: faz funcionar offline
-├── css/styles.css     # visual
-├── js/app.js          # toda a lógica (dados, faturas, relatórios)
-└── icons/             # ícones do app
-```
-
-Não usa nenhuma biblioteca externa, não precisa de `npm install`, não precisa de build.
-É HTML, CSS e JavaScript puro — abre direto.
-
-### Rodar no computador para testar
-
-```bash
-python3 -m http.server 8000
-# depois abra http://localhost:8000
-```
+Por isso: **uma vez por mês, entre em Ajustes → Baixar backup (.json)**. Para restaurar em outro
+aparelho, use *Restaurar backup*.
 
 ---
 
 ## 🔧 Personalizar
 
-- **Trocar bancos ou cartões:** edite a função `defaults()` no começo de `js/app.js`.
-- **Mudar cores:** as variáveis de cor estão no topo de `css/styles.css` (`:root`).
-- **Adicionar categorias:** direto pelo app, em *Ajustes → Categorias*.
+Tudo está dentro do `index.html`:
+
+- **Cores:** bloco `:root` no começo do `<style>`.
+- **Bancos, cartões e categorias iniciais:** função `defaults()` no `<script>`.
+- **Categorias novas:** direto no app, em *Ajustes → Categorias*.
+
+Para testar no computador: `python3 -m http.server 8000` e abra `http://localhost:8000`.
+(Também funciona abrindo o `index.html` com dois cliques — só o modo offline exige um servidor.)
 
 ---
 
