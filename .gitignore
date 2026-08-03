@@ -1,0 +1,17 @@
+# sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editores
+.vscode/
+.idea/
+*.swp
+
+# node (não é usado, mas por segurança)
+node_modules/
+npm-debug.log*
+
+# backups locais
+*.local.json
+backup-*.json
