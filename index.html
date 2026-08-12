@@ -663,7 +663,7 @@ function catCor(c) { return (CAT[c] && CAT[c].c) || '#94a3b8'; }
 function defaults() {
   return {
     versao: 2,
-    perfil: { nome: 'Thaynara', tema: 'dark', onboard: false, ultimo: null },
+    perfil: { nome: 'Thaynara', tema: 'dark', onboard: false, ultimo: null, cartaoInter: false, ultimoBackup: null },
     contas: [
       { id:'bb',       nome:'Banco do Brasil', curto:'BB',       cor:'#1263d8', saldoInicial:0 },
       { id:'nubank',   nome:'Nubank',          curto:'Nubank',   cor:'#9b1ee8', saldoInicial:0 },
@@ -671,8 +671,9 @@ function defaults() {
       { id:'dinheiro', nome:'Dinheiro',        curto:'Dinheiro', cor:'#34d399', saldoInicial:0 }
     ],
     cartoes: [
-      { id:'cc_bb', nome:'Cartão BB',     estilo:'bb', contaPagamento:'bb',     fechamento:1,  vencimento:10, limite:0 },
-      { id:'cc_nu', nome:'Cartão Nubank', estilo:'nu', contaPagamento:'nubank', fechamento:20, vencimento:27, limite:0 }
+      { id:'cc_bb',    nome:'Cartão BB',     cor:'#1263d8', contaPagamento:'bb',     fechamento:1,  vencimento:10, limite:0 },
+      { id:'cc_nu',    nome:'Cartão Nubank', cor:'#9b1ee8', contaPagamento:'nubank', fechamento:20, vencimento:27, limite:0 },
+      { id:'cc_inter', nome:'Cartão Inter',  cor:'#ff7a00', contaPagamento:'inter',  fechamento:25, vencimento:5,  limite:0 }
     ],
     categorias: ['Mercado','Alimentação','Transporte','Moradia','Contas','Saúde','Educação',
                  'Lazer','Vestuário','Beleza','Assinaturas','Pets','Presentes','Viagem','Outros'],
@@ -701,6 +702,25 @@ function load() {
     DB = defaults();
   }
 }
+/* ajustes automáticos para bases criadas em versões anteriores */
+function migrar() {
+  var mudou = false;
+  DB.cartoes.forEach(function (c) {
+    if (!c.cor) { c.cor = c.estilo === 'nu' ? '#9b1ee8' : '#1263d8'; mudou = true; }
+  });
+  if (!DB.perfil.cartaoInter) {
+    DB.perfil.cartaoInter = true; mudou = true;
+    var temInter = DB.cartoes.some(function (c) {
+      return c.id === 'cc_inter' || /inter/i.test(c.nome);
+    });
+    if (!temInter) {
+      DB.cartoes.push({ id:'cc_inter', nome:'Cartão Inter', cor:'#ff7a00',
+        contaPagamento:'inter', fechamento:25, vencimento:5, limite:0 });
+    }
+  }
+  if (mudou) save();
+}
+
 function completar(d) {
   var base = defaults();
   Object.keys(base).forEach(function (k) { if (d[k] === undefined) d[k] = base[k]; });
@@ -801,6 +821,24 @@ function getCartao(id) { for (var i=0;i<DB.cartoes.length;i++) if (DB.cartoes[i]
 function nomeConta(id) { var c = getConta(id); return c ? c.curto : '—'; }
 function nomeCartao(id) { var c = getCartao(id); return c ? c.nome : '—'; }
 function corConta(id) { var c = getConta(id); return c ? c.cor : '#94a3b8'; }
+var CORES_CARTAO = ['#1263d8','#9b1ee8','#ff7a00','#e11d48','#0f9d58','#111827','#8b5cf6','#0891b2'];
+function corCartao(c) {
+  if (!c) return '#8b5cf6';
+  if (c.cor) return c.cor;
+  return c.estilo === 'nu' ? '#9b1ee8' : '#1263d8';   /* compatibilidade com versões antigas */
+}
+/* clareia uma cor para montar o degradê do cartão */
+function clarear(hex, f) {
+  var h = String(hex).replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var n = parseInt(h, 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  r = Math.round(r + (255 - r) * f); g = Math.round(g + (255 - g) * f); b = Math.round(b + (255 - b) * f);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+function gradCartao(c) {
+  var cor = corCartao(c);
+  return 'linear-gradient(135deg,' + cor + ',' + clarear(cor, .35) + ' 68%,' + clarear(cor, .6) + ' 130%)';
+}
 
 /* =========================================================================
    4. FATURAS DE CARTÃO
@@ -1035,7 +1073,7 @@ function renderHome() {
     var venc = vencimentoFatura(ch, c);
     var dias = Math.round((parseD(venc) - parseD(hoje())) / 86400000);
     h += '<div class="li" data-goto="cartoes">' +
-      '<div class="tx-ic" style="background:' + (c.estilo === 'nu' ? 'rgba(155,30,232,.2)' : 'rgba(18,99,216,.2)') + '">💳</div>' +
+      '<div class="tx-ic" style="background:' + rgba(corCartao(c), .2) + '">💳</div>' +
       '<div class="li-m"><div class="li-t">' + esc(c.nome) + '</div>' +
       '<div class="li-s">' + (pg ? '<span class="pill g">paga</span>'
         : 'vence ' + dataCurta(venc) + (dias >= 0 && dias <= 7 ? ' · <span class="pill a">em ' + (dias === 0 ? 'hoje' : dias + ' dias') + '</span>' : '')) + '</div></div>' +
@@ -1150,7 +1188,7 @@ function renderCartoes() {
     var ch = faturaAtual(c), total = totalFatura(c.id, ch), pg = faturaPaga(c.id, ch);
     var divida = dividaCartao(c.id);
     var pct = c.limite > 0 ? Math.min(100, divida / c.limite * 100) : 0;
-    h += '<div class="cc ' + (c.estilo === 'nu' ? 'nu' : 'bb') + '">' +
+    h += '<div class="cc" style="background:' + gradCartao(c) + ';box-shadow:0 14px 34px -16px ' + rgba(corCartao(c), .9) + '">' +
       '<div class="cc-h"><div class="cc-n">' + esc(c.nome) + '</div>' +
       '<div class="cc-tag">fecha dia ' + c.fechamento + '</div></div>' +
       '<div class="cc-v num">' + fmt(total) + '</div>' +
@@ -1401,7 +1439,7 @@ function renderRelatorios() {
     var v = round2(lancamentosDoMes(UI.mes).filter(function (l) {
       return l.tipo === 'despesa' && l.metodo === 'credito' && l.cartao === c.id;
     }).reduce(function (s, l) { return s + l.valor; }, 0));
-    h += barra('<span class="dotc" style="background:' + (c.estilo === 'nu' ? '#9b1ee8' : '#1263d8') + '"></span><span>💳 ' + esc(c.nome) + '</span>', v, desp ? v / desp * 100 : 0);
+    h += barra('<span class="dotc" style="background:' + corCartao(c) + '"></span><span>💳 ' + esc(c.nome) + '</span>', v, desp ? v / desp * 100 : 0);
   });
   h += '</div>';
 
@@ -1433,15 +1471,30 @@ function renderAjustes() {
   });
   h += '<div class="mini mt12">Saldo inicial = quanto tinha na conta antes de começar a usar o app.</div></div>';
 
+  h += '<div class="sec">Cartões de crédito</div>';
   DB.cartoes.forEach(function (c) {
-    h += '<div class="card"><div class="eyebrow mb8">💳 ' + esc(c.nome) + '</div>' +
+    var usados = DB.lancamentos.filter(function (l) { return l.cartao === c.id; }).length;
+    h += '<div class="card">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+        '<div style="width:34px;height:24px;border-radius:7px;flex:0 0 34px;background:' + gradCartao(c) + '"></div>' +
+        '<div class="eyebrow" style="flex:1">' + esc(c.nome) + '</div>' +
+      '</div>' +
+      '<label class="lbl">Nome do cartão</label><input class="inp" data-cc="' + c.id + '|nome" value="' + esc(c.nome) + '">' +
+      '<label class="lbl">Cor</label><div class="chips wrap">' + CORES_CARTAO.map(function (cor) {
+        return '<button class="chip ' + (corCartao(c) === cor ? 'on' : '') + '" data-cccor="' + c.id + '|' + cor + '" ' +
+          'style="width:38px;height:34px;padding:0;justify-content:center"><span class="dotc" style="width:15px;height:15px;background:' + cor + '"></span></button>';
+      }).join('') + '</div>' +
       '<div class="r2"><div><label class="lbl">Fecha dia</label><input class="inp num" type="number" min="1" max="28" data-cc="' + c.id + '|fechamento" value="' + c.fechamento + '"></div>' +
       '<div><label class="lbl">Vence dia</label><input class="inp num" type="number" min="1" max="28" data-cc="' + c.id + '|vencimento" value="' + c.vencimento + '"></div></div>' +
       '<label class="lbl">Limite total</label><input class="inp num" type="number" inputmode="decimal" step="0.01" data-cc="' + c.id + '|limite" value="' + (c.limite || 0) + '">' +
       '<label class="lbl">Fatura paga pela conta</label><select class="inp" data-cc="' + c.id + '|contaPagamento">' +
       DB.contas.map(function (x) { return '<option value="' + x.id + '"' + (c.contaPagamento === x.id ? ' selected' : '') + '>' + esc(x.nome) + '</option>'; }).join('') +
-      '</select></div>';
+      '</select>' +
+      '<button class="btn dan full mt12" data-ccdel="' + c.id + '">🗑 Remover este cartão' +
+        (usados ? ' (' + usados + ' lançamentos)' : '') + '</button>' +
+      '</div>';
   });
+  h += '<button class="btn sec full mb8" data-ccadd="1">＋ Adicionar outro cartão</button>';
 
   h += '<div class="card"><div class="eyebrow mb8">Orçamento mensal por categoria</div>' +
     '<div class="mini mb8">Deixe em branco para não ter limite.</div>';
@@ -1583,7 +1636,7 @@ function desenharAdd() {
     $('#lOrigem').textContent = 'Qual cartão?';
     $('#cOrigem').innerHTML = DB.cartoes.map(function (c) {
       return '<button class="chip ' + (a.cartao === c.id ? 'on' : '') + '" data-cartao="' + c.id + '">' +
-        '<span class="dotc" style="background:' + (c.estilo === 'nu' ? '#9b1ee8' : '#1263d8') + '"></span>' + esc(c.nome) + '</button>';
+        '<span class="dotc" style="background:' + corCartao(c) + '"></span>' + esc(c.nome.replace('Cartão ', '')) + '</button>';
     }).join('');
     $('#fOrigem').classList.remove('hidden');
     $('#fParcelas').classList.toggle('hidden', !!UI.editando);
@@ -1785,6 +1838,68 @@ function restaurarDeTexto(txt, modo) {
   save(); aplicarTema(); fecharGen(); setView('home');
   toast('Dados restaurados ✅ ' + DB.lancamentos.length + ' lançamentos');
   return true;
+}
+
+/* ---------- adicionar / remover cartões ---------- */
+function formNovoCartao() {
+  var h = '<label class="lbl">Nome do cartão</label>' +
+    '<input class="inp" id="ncNome" placeholder="Ex: Cartão Inter" value="">' +
+    '<label class="lbl">Cor</label><div class="chips wrap" id="ncCores">' +
+      CORES_CARTAO.map(function (cor, i) {
+        return '<button class="chip ' + (i === 2 ? 'on' : '') + '" data-nccor="' + cor + '" ' +
+          'style="width:40px;height:36px;padding:0;justify-content:center"><span class="dotc" style="width:16px;height:16px;background:' + cor + '"></span></button>';
+      }).join('') + '</div>' +
+    '<div class="r2"><div><label class="lbl">Fecha dia</label><input class="inp num" id="ncFech" type="number" min="1" max="28" value="25"></div>' +
+    '<div><label class="lbl">Vence dia</label><input class="inp num" id="ncVenc" type="number" min="1" max="28" value="5"></div></div>' +
+    '<div class="mini mt8">Está na fatura ou no app do banco.</div>' +
+    '<label class="lbl">Limite total (opcional)</label><input class="inp num" id="ncLimite" type="number" inputmode="decimal" step="0.01" value="0">' +
+    '<label class="lbl">Fatura paga pela conta</label><select class="inp" id="ncConta">' +
+      DB.contas.map(function (x) { return '<option value="' + x.id + '">' + esc(x.nome) + '</option>'; }).join('') +
+    '</select>' +
+    '<button class="btn pri full mt16" id="ncSalvar">Adicionar cartão</button>';
+  abrirGen('Novo cartão de crédito', h);
+  $('#gBody').dataset.nccor = CORES_CARTAO[2];
+  $('#ncCores').onclick = function (e) {
+    var b = e.target.closest('[data-nccor]'); if (!b) return;
+    $$('#ncCores .chip').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    $('#gBody').dataset.nccor = b.dataset.nccor;
+  };
+  $('#ncSalvar').onclick = function () {
+    var nome = ($('#ncNome').value || '').trim();
+    if (!nome) { toast('Dê um nome ao cartão'); return; }
+    DB.cartoes.push({
+      id: 'cc_' + uid(),
+      nome: nome,
+      cor: $('#gBody').dataset.nccor || CORES_CARTAO[0],
+      contaPagamento: $('#ncConta').value,
+      fechamento: Math.max(1, Math.min(28, parseInt($('#ncFech').value, 10) || 25)),
+      vencimento: Math.max(1, Math.min(28, parseInt($('#ncVenc').value, 10) || 5)),
+      limite: parseFloat($('#ncLimite').value) || 0
+    });
+    save(); fecharGen(); render(); toast('Cartão adicionado ✅'); vib();
+  };
+}
+
+function removerCartao(id) {
+  var c = getCartao(id); if (!c) return;
+  var usados = DB.lancamentos.filter(function (l) { return l.cartao === id; }).length;
+  if (DB.cartoes.length <= 1) { toast('Precisa existir pelo menos um cartão'); return; }
+  if (usados) {
+    abrirGen('Não dá para remover ainda',
+      '<div style="font-size:14.5px;color:var(--tx-2);line-height:1.55">O <b>' + esc(c.nome) + '</b> tem <b>' + usados +
+      ' lançamento(s)</b> ligados a ele. Se eu apagasse o cartão agora, esses gastos ficariam órfãos e sumiriam das faturas.' +
+      '<br><br>Apague ou mude esses lançamentos primeiro (toque neles na tela inicial) e depois remova o cartão.</div>' +
+      '<button class="btn sec full mt16" id="okOrfaos">Entendi</button>');
+    $('#okOrfaos').onclick = fecharGen;
+    return;
+  }
+  confirmar('Remover ' + esc(c.nome) + '?', 'O cartão sai do app. Nenhum lançamento será afetado, porque ele não tem nenhum.', 'Sim, remover', function () {
+    DB.cartoes = DB.cartoes.filter(function (x) { return x.id !== id; });
+    Object.keys(DB.faturasPagas).forEach(function (k) { if (k.indexOf(id + ':') === 0) delete DB.faturasPagas[k]; });
+    if (DB.perfil.ultimo && DB.perfil.ultimo.cartao === id) DB.perfil.ultimo.cartao = DB.cartoes[0].id;
+    save(); render(); toast('Cartão removido');
+  });
 }
 
 /* ---------- transferir entre o Safari e o app instalado ---------- */
@@ -2221,6 +2336,13 @@ function bind() {
       return;
     }
     if (t.id === 'bInstalar') return guiaInstalacao();
+    if ((el = e.target.closest('[data-ccadd]'))) return formNovoCartao();
+    if ((el = e.target.closest('[data-ccdel]'))) return removerCartao(el.dataset.ccdel);
+    if ((el = e.target.closest('[data-cccor]'))) {
+      var pc = el.dataset.cccor.split('|'), card = getCartao(pc[0]);
+      if (card) { card.cor = pc[1]; save(); render(); }
+      return;
+    }
     if (t.id === 'bTransferir') return abrirTransferir();
     if (t.id === 'bRecuperar') return abrirRecuperar();
     if (t.id === 'bExpJson') return exportarJson();
@@ -2253,7 +2375,11 @@ function bind() {
     }
     if (t.hasAttribute('data-cc')) {
       var p = t.dataset.cc.split('|'), card = getCartao(p[0]);
-      if (card) { card[p[1]] = p[1] === 'contaPagamento' ? t.value : (parseFloat(t.value) || 0); recalcularFaturas(); autosave(); }
+      if (card) {
+        card[p[1]] = (p[1] === 'contaPagamento' || p[1] === 'nome' || p[1] === 'cor')
+          ? t.value : (parseFloat(t.value) || 0);
+        recalcularFaturas(); autosave();
+      }
     }
   });
   $('#main').addEventListener('change', function (e) {
@@ -2262,7 +2388,11 @@ function bind() {
     if (t.id === 'fImp' && t.files[0]) { importarJson(t.files[0]); return; }
     if (t.hasAttribute('data-cc')) {
       var p = t.dataset.cc.split('|'), card = getCartao(p[0]);
-      if (card) { card[p[1]] = p[1] === 'contaPagamento' ? t.value : (parseFloat(t.value) || 0); recalcularFaturas(); save(); }
+      if (card) {
+        card[p[1]] = (p[1] === 'contaPagamento' || p[1] === 'nome' || p[1] === 'cor')
+          ? t.value : (parseFloat(t.value) || 0);
+        recalcularFaturas(); save();
+      }
     }
   });
 
@@ -2311,7 +2441,7 @@ function bind() {
    19. INÍCIO
    ========================================================================= */
 function init() {
-  load(); aplicarTema(); copiaDoDia(); gerarFixas(); bind(); setView('home');
+  load(); migrar(); aplicarTema(); copiaDoDia(); gerarFixas(); bind(); setView('home');
   if (!DB.perfil.onboard && !DB.lancamentos.length) setTimeout(abrirOnboarding, 550);
   else avaliarBarraInstalar();
   if (ehStandalone()) document.body.classList.add('instalado');
@@ -2330,7 +2460,8 @@ window.__FT = {
   ehStandalone: ehStandalone, ehIOS: ehIOS, ehSafari: ehSafari, guiaInstalacao: guiaInstalacao,
   avaliarBarraInstalar: avaliarBarraInstalar, iconeDoApp: iconeDoApp,
   restaurarDeTexto: restaurarDeTexto, abrirTransferir: abrirTransferir, abrirRecuperar: abrirRecuperar,
-  listarCopias: listarCopias, copiaDoDia: copiaDoDia, STORE_KEY: STORE_KEY
+  listarCopias: listarCopias, copiaDoDia: copiaDoDia, STORE_KEY: STORE_KEY,
+  formNovoCartao: formNovoCartao, removerCartao: removerCartao, migrar: migrar, corCartao: corCartao
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
