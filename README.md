@@ -37,10 +37,17 @@ no celular e funcionar offline.
 
 ### Instalar no celular
 
-Abra o endereço no celular e:
+Abra o endereço **no Safari** (iPhone) ou no Chrome (Android). O próprio app mostra uma
+barrinha **"Instalar na tela inicial"** com o passo a passo ilustrado. Se ela dispensar,
+o guia continua disponível em **Ajustes → Como instalar no celular**.
 
+Manualmente:
+
+- **iPhone (Safari):** botão compartilhar → **Adicionar à Tela de Início** → **Adicionar**
 - **Android (Chrome):** menu ⋮ → **Instalar aplicativo**
-- **iPhone (Safari):** botão compartilhar → **Adicionar à Tela de Início**
+
+O ícone da tela inicial já vem **embutido dentro do `index.html`** — mesmo subindo só esse
+arquivo, a logo aparece certinha no celular.
 
 ---
 
@@ -100,8 +107,27 @@ Ficam no armazenamento local do navegador do celular (`localStorage`), gravados 
 - ✅ Funciona sem internet.
 - ⚠️ Se limpar os dados do navegador ou trocar de celular, os dados vão junto.
 
-Por isso: **uma vez por mês, entre em Ajustes → Baixar backup (.json)**. Para restaurar em outro
-aparelho, use *Restaurar backup*.
+### ⚠️ Importante no iPhone: Safari e app instalado são dois lugares
+
+No iOS, o Safari e o app adicionado à tela inicial guardam dados em **áreas separadas**. Lançar
+algo no Safari não faz aparecer no app instalado, e vice-versa. **Escolha um e use sempre o
+mesmo** — de preferência o app instalado, porque o Safari apaga o armazenamento de sites que
+ficam mais de 7 dias sem serem abertos (regra do próprio iOS), enquanto o app instalado não sofre
+com isso.
+
+Para levar os dados de um para o outro: **Ajustes → 🔄 Transferir dados**. No lugar que tem os
+lançamentos, toque em *Copiar meus dados*; no outro, cole no campo e toque em *Trazer os dados*
+(ou *Juntar*, se os dois lados tiverem coisas diferentes).
+
+### Proteções contra perda
+
+- O app guarda **cópias automáticas dos últimos 3 dias** no aparelho — veja em
+  *Ajustes → 🛟 Recuperar dados*.
+- Antes de qualquer restauração, o estado atual também é salvo.
+- Se o arquivo de dados ficar ilegível, o app **não sobrescreve** — guarda o original para resgate.
+- A cada 20 dias sem backup, a tela inicial lembra de fazer um.
+
+Mesmo assim: **uma vez por mês, Ajustes → Baixar backup (.json)** e guarde no iCloud Drive.
 
 ---
 
